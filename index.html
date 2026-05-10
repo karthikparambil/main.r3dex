@@ -1324,16 +1324,23 @@
         .blog-preview {
             background: var(--ink3);
             border: 1px solid var(--line);
-            padding: 1.5rem;
+            padding: 0;
             margin-bottom: 1.5rem;
             font-family: 'IBM Plex Mono', monospace;
             font-size: 0.68rem;
             color: rgba(61, 255, 192, 0.5);
             line-height: 2;
-            min-height: 120px;
+            height: 280px;
             position: relative;
             overflow: hidden;
             flex-shrink: 0;
+        }
+
+        .blog-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
         }
 
         .blog-title {
@@ -2293,9 +2300,9 @@
 
             <div class="blogs-grid reveal">
                 <!-- Featured -->
-                <a href="../blog.r3dex/post/google-jules/index.html" class="blog-featured">
+                <a onclick="window.open('https://blog-r3dex.vercel.app/post/google-jules/index.html', '_blank')" class="blog-featured">
                     <div class="blog-preview">
-                        <img src="#" alt="Google Jules">
+                        <img src="https://blog-r3dex.vercel.app/assets/jules_banner.png" alt="Google Jules">
                     </div>
                     <div class="blog-title">Google Releases Jules: The Autonomous AI Coding Agent</div>
                     <div class="blog-excerpt">Explore Google's latest frontier in agentic coding. Jules doesn't just
@@ -2307,7 +2314,7 @@
 
                 <!-- Side cards -->
                 <div class="blogs-side">
-                    <a href="../blog.r3dex/post/run-claude-free/index.html" class="blog-small">
+                    <a onclick="window.open('https://blog-r3dex.vercel.app/post/run-claude-free/index.html', '_blank')" class="blog-small">
                         <div class="blog-title">Run Claude Code Completely Free</div>
                         <div class="blog-excerpt">Master AI coding workflows using OpenRouter API and local Ollama
                             hosting without spending a cent.</div>
@@ -2316,7 +2323,7 @@
                         </div>
                     </a>
 
-                    <a href="../blog.r3dex/post/hashcat-mode-tool/index.html" class="blog-small">
+                    <a onclick="window.open('https://blog-r3dex.vercel.app/post/hashcat-mode-tool/index.html', '_blank')" class="blog-small">
                         <div class="blog-title">Hashcat Made Finding Modes Harder, So I Built a Tool to Fix It</div>
                         <div class="blog-excerpt">Streamline your password cracking workflow with a dedicated Hash
                             Identification Tool.</div>
@@ -2325,7 +2332,7 @@
                         </div>
                     </a>
 
-                    <a href="../blog.r3dex/post/zerotrust-arch/index.html" class="blog-small">
+                    <a onclick="window.open('https://blog-r3dex.vercel.app', '_blank')" class="blog-small">
                         <div class="blog-title">The Rise of Zero Trust Architecture</div>
                         <div class="blog-excerpt">Implementing identity-centric security models in modern enterprise
                             environments.</div>
