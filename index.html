@@ -12,9 +12,7 @@
         rel="stylesheet">
 
     <style>
-        /* ─── TOKENS ─────────────────────────────────────────────── */
         :root {
-            /* ── Core palette (practice.html theme) ── */
             --black: #121212;
             --off: #1a1a1a;
             --grey1: #222222;
@@ -34,16 +32,13 @@
             --orange: #fb923c;
             --ease: cubic-bezier(0.16, 1, 0.3, 1);
 
-            /* ── Legacy aliases so existing colour references still work ── */
             --ink: var(--black);
             --ink2: var(--off);
             --ink3: var(--grey1);
             --surface: var(--grey2);
             --head: var(--white);
             --g: var(--red);
-            /* accent green → red  */
             --c: var(--red2);
-            /* accent cyan  → red2 */
             --r: var(--red);
             --y: var(--yellow);
             --p: var(--purple);
@@ -52,7 +47,6 @@
             --easing: var(--ease);
             --ease-out: var(--ease);
 
-            /* ── Roadmap section extras ── */
             --roadmap-bg: #0a0a0a;
             --roadmap-bg2: #111111;
             --roadmap-surface: #161616;
@@ -74,7 +68,6 @@
             --glow-orange: 0 0 8px #fb923c55, 0 0 20px #fb923c22, 0 0 40px #fb923c11;
         }
 
-        /* ─── RESET ──────────────────────────────────────────────── */
         *,
         *::before,
         *::after {
@@ -106,7 +99,6 @@
             display: block;
         }
 
-        /* ─── NOISE TEXTURE ──────────────────────────────────────── */
         body::before {
             content: '';
             position: fixed;
@@ -117,7 +109,6 @@
             z-index: 9998;
         }
 
-        /* ─── SCROLLBAR ──────────────────────────────────────────── */
         ::-webkit-scrollbar {
             width: 2px;
         }
@@ -130,7 +121,6 @@
             background: var(--red);
         }
 
-        /* ─── NAV ────────────────────────────────────────────────── */
         nav {
             position: fixed;
             top: 0;
@@ -228,7 +218,6 @@
             transition: 0.6s;
         }
 
-        /* ─── REVEAL ANIMATIONS ──────────────────────────────────── */
         .reveal {
             opacity: 0;
             transform: translateY(28px);
@@ -264,14 +253,12 @@
             transition-delay: 0.6s;
         }
 
-        /* ─── SECTION WRAPPER ────────────────────────────────────── */
         .wrap {
             max-width: 1200px;
             margin: 0 auto;
             padding: 0 4rem;
         }
 
-        /* ─── SECTION LABEL ──────────────────────────────────────── */
         .label {
             font-family: 'IBM Plex Mono', monospace;
             font-size: 0.68rem;
@@ -315,16 +302,12 @@
             margin-top: 0.75rem;
         }
 
-        /* ─── DIVIDER ────────────────────────────────────────────── */
         .divider {
             width: 100%;
             height: 1px;
             background: var(--line);
         }
 
-        /* ═══════════════════════════════════════════════════════════
-   HERO
-═══════════════════════════════════════════════════════════ */
         .hero {
             min-height: 100vh;
             display: flex;
@@ -335,7 +318,7 @@
             overflow: hidden;
         }
 
-        /* Ambient gradient blob */
+
         .hero-blob {
             position: absolute;
             width: 700px;
@@ -370,7 +353,6 @@
             }
         }
 
-        /* Dot grid */
         .hero-dots {
             position: absolute;
             inset: 0;
@@ -509,7 +491,6 @@
             box-shadow: 0 10px 25px rgba(255, 61, 61, 0.1);
         }
 
-        /* Hero stats */
         .hero-stats {
             position: absolute;
             bottom: 4rem;
@@ -539,7 +520,7 @@
             margin-top: 4px;
         }
 
-        /* Scroll indicator */
+
         .scroll-hint {
             position: absolute;
             bottom: 4rem;
@@ -590,9 +571,6 @@
             }
         }
 
-        /* ═══════════════════════════════════════════════════════════
-   MARQUEE TICKER
-═══════════════════════════════════════════════════════════ */
         .ticker {
             border-top: 1px solid var(--line);
             border-bottom: 1px solid var(--line);
@@ -642,9 +620,6 @@
             }
         }
 
-        /* ═══════════════════════════════════════════════════════════
-   HUB — NAV CARDS
-═══════════════════════════════════════════════════════════ */
         .hub-section {
             padding: 8rem 0;
         }
@@ -706,9 +681,7 @@
                 inset 0 0 0 1px var(--card-accent, rgba(0, 255, 178, 0.2));
         }
 
-        /* ═══════════════════════════
-       SECTION: PATH DEEP DIVE
-    ════════════════════════════ */
+
         .paths-sec {
             padding: 8rem 0;
             background: var(--off);
@@ -852,9 +825,7 @@
             box-shadow: 0 8px 30px rgba(229, 0, 31, 0.25)
         }
 
-        /* ═══════════════════════════════════════════════════════════
-   ROADMAP (INTEGRATED FROM CYBERSECURITY-ROADMAP)
-═══════════════════════════════════════════════════════════ */
+
         .roadmap-section {
             padding: 8rem 0;
             background: var(--ink);
@@ -883,7 +854,7 @@
             margin-bottom: 4rem;
         }
 
-        /* STATUS BAR */
+
         .status-bar {
             display: flex;
             align-items: center;
@@ -923,7 +894,6 @@
             }
         }
 
-        /* ROADMAP TRACK */
         .roadmap {
             position: relative;
             display: flex;
@@ -931,7 +901,6 @@
             gap: 0;
         }
 
-        /* Central spine */
         .roadmap::before {
             content: '';
             position: absolute;
@@ -948,7 +917,6 @@
             z-index: 0;
         }
 
-        /* PHASE ROW */
         .phase {
             display: grid;
             grid-template-columns: 1fr 64px 1fr;
@@ -961,7 +929,6 @@
             animation: roadmap-fadeUp 0.5s ease forwards;
         }
 
-        /* Stagger phases */
         .phase:nth-child(1) {
             animation-delay: 0.1s;
         }
@@ -993,7 +960,7 @@
             }
         }
 
-        /* Alternate: odd phases card on left, even on right */
+
         .phase.left .card-side {
             grid-column: 1;
             text-align: right;
@@ -1016,7 +983,7 @@
             grid-column: 2;
         }
 
-        /* NODE */
+
         .node-col {
             display: flex;
             flex-direction: column;
@@ -1082,7 +1049,7 @@
             margin-top: 6px;
         }
 
-        /* CARD */
+
         .card-side {
             position: relative;
         }
@@ -1116,7 +1083,7 @@
             border-color: rgba(255, 61, 61, 0.3) !important;
         }
 
-        /* Card header */
+
         .card-header {
             padding: 14px 18px 12px;
             display: flex;
@@ -1126,9 +1093,6 @@
             transition: border-color 0.3s;
         }
 
-        /* Node static active style if any (none needed if no expansion) */
-
-        /* FOOTER NOTE */
         .roadmap-footer-note {
             text-align: center;
             margin-top: 60px;
@@ -1147,7 +1111,6 @@
             color: var(--accent-cyan);
         }
 
-        /* RESPONSIVE */
         @media (max-width: 680px) {
             .roadmap::before {
                 left: 24px;
@@ -1196,9 +1159,6 @@
             }
         }
 
-        /* ═══════════════════════════════════════════════════════════
-   BLOGS
-═══════════════════════════════════════════════════════════ */
         .blogs-section {
             padding: 8rem 0;
         }
@@ -1400,9 +1360,6 @@
             text-align: center;
         }
 
-        /* ═══════════════════════════════════════════════════════════
-   TOOLS
-═══════════════════════════════════════════════════════════ */
         .tools-section {
             padding: 8rem 0;
             background: var(--ink2);
@@ -1489,9 +1446,6 @@
             opacity: 0.7;
         }
 
-        /* ═══════════════════════════════════════════════════════════
-   OPEN SOURCE / RESOURCES
-═══════════════════════════════════════════════════════════ */
         .resources-section {
             padding: 8rem 0;
         }
@@ -1590,10 +1544,6 @@
             margin-bottom: 1.5rem;
         }
 
-
-        /* ═══════════════════════════════════════════════════════════
-   CTA BAND
-═══════════════════════════════════════════════════════════ */
         .cta-band {
             padding: 8rem 0;
             background: var(--ink2);
@@ -1670,9 +1620,6 @@
             align-items: center;
         }
 
-        /* ═══════════════════════════════════════════════════════════
-   FOOTER
-═══════════════════════════════════════════════════════════ */
         footer {
             background: var(--ink);
             border-top: 1px solid var(--line);
@@ -1791,7 +1738,6 @@
             box-shadow: 0 10px 20px rgba(61, 255, 192, 0.25);
         }
 
-        /* ─── MOBILE ─────────────────────────────────────────────── */
         @media (max-width: 960px) {
             nav {
                 padding: 0 1.5rem;
@@ -1853,7 +1799,7 @@
             }
         }
 
-        /* ─── WHOAMI ────────────────────────────────────────── */
+
         .whoami-section {
             padding: 8rem 0;
             background: var(--black);
@@ -2530,9 +2476,7 @@
         </div>
     </footer>
 
-    <!-- ─── SCRIPTS ───────────────────────────────────────── -->
     <script>
-        /* Scroll reveal */
         const io = new IntersectionObserver((entries) => {
             entries.forEach(e => {
                 if (e.isIntersecting) {
@@ -2542,7 +2486,7 @@
         }, { threshold: 0.08 });
         document.querySelectorAll('.reveal').forEach(el => io.observe(el));
 
-        /* Roadmap node hover */
+
         document.querySelectorAll('.road-node-wrap').forEach(n => {
             n.addEventListener('mouseenter', () => n.classList.add('lit'));
             n.addEventListener('mouseleave', () => {
@@ -2550,7 +2494,7 @@
             });
         });
 
-        /* Ticker */
+
         const items = [
             'CTF Writeups', 'CTF Challenges', 'Vulnerable Machines',
             'Learning Roadmaps', 'Open Source Resources', 'Vulnerability Research',
@@ -2559,7 +2503,7 @@
             'Network Security', 'OSINT Techniques',
         ];
         const track = document.getElementById('ticker');
-        // duplicate for infinite scroll
+
         [...items, ...items].forEach(txt => {
             const d = document.createElement('div');
             d.className = 'ticker-item';
@@ -2567,7 +2511,7 @@
             track.appendChild(d);
         });
 
-        /* Smooth counter for hero */
+
         function countUp(el, target, duration = 1800) {
             const start = performance.now();
             const update = (now) => {
@@ -2591,7 +2535,6 @@
         const heroStats = document.querySelector('.hero-stats');
         if (heroStats) heroObs.observe(heroStats);
 
-        /* Stagger hub cards on reveal */
         document.querySelectorAll('.hub-card').forEach((card, i) => {
             card.style.transitionDelay = `${i * 0.07}s`;
         });
